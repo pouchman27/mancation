@@ -266,7 +266,7 @@ document.getElementById("sumtable").innerHTML =
       <td class="rn"><a href="#game-${g.numeral}">${g.numeral}</a></td>
       <td><a href="#game-${g.numeral}">${g.month.slice(0,3)} ${g.day}, ${g.year}</a></td>
       <td><a href="#game-${g.numeral}">${rk(g.byuRank)}BYU vs ${rk(g.oppRank)}${g.opp}</a></td>
-      <td>${g.byuScore}-${g.oppScore}</td>
+      <td><a href="#game-${g.numeral}">${g.byuScore}-${g.oppScore}</a></td>
       <td class="${w?'w':'l'}">${w?'W':'L'}</td>
       <td>${g.city}, ${g.state}</td></tr>`;
   }).join("");
