@@ -10,9 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Franklin:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0f14; --panel:#131a22; --panel2:#182230; --line:#26334a;
-    --gold:#d9a441; --gold-bright:#f2c15c; --cream:#f4ead5;
-    --text:#e8e4d8; --muted:#9aa4ae; --win:#4caf7d; --loss:#c95b5b;
+    --bg:#060e1c; --panel:#0c1a30; --panel2:#122440; --line:#1d3a63;
+    --gold:#2e6fd8; --gold-bright:#6ea8ff; --cream:#f0f5ff;
+    --text:#e4ecf7; --muted:#8ea3c0; --win:#4caf7d; --loss:#c95b5b;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -20,7 +20,7 @@
   .wrap{max-width:960px;margin:0 auto;padding:0 18px}
 
   header.hero{text-align:center;padding:56px 18px 36px;position:relative;overflow:hidden;
-    background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(217,164,65,.18), transparent 60%),linear-gradient(180deg,#0e1420 0%,var(--bg) 100%);
+    background:radial-gradient(ellipse 80% 60% at 50% -10%, rgba(46,111,216,.25), transparent 60%),linear-gradient(180deg,#0a1830 0%,var(--bg) 100%);
     border-bottom:3px solid var(--gold)}
   .hero .est{letter-spacing:.35em;font-size:.72rem;color:var(--gold);text-transform:uppercase;font-weight:600}
   .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.6rem,13vw,7.5rem);line-height:.95;color:var(--cream);text-shadow:0 3px 0 rgba(0,0,0,.6);letter-spacing:.04em;margin:.15em 0 .05em}
@@ -44,7 +44,7 @@
   table.sum th{font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-weight:400;font-size:.95rem;color:var(--gold);background:var(--panel2);padding:10px 8px;text-align:left;border-bottom:1px solid var(--line)}
   table.sum td{padding:9px 8px;border-bottom:1px solid rgba(38,51,74,.5)}
   table.sum tr:last-child td{border-bottom:none}
-  table.sum tr:hover td{background:rgba(217,164,65,.05)}
+  table.sum tr:hover td{background:rgba(110,168,255,.06)}
   table.sum a{color:inherit;text-decoration:none}
   table.sum td.rn a{color:var(--gold-bright);border-bottom:1px dotted var(--gold)}
   .game{scroll-margin-top:64px}
@@ -54,7 +54,7 @@
 
   .game{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:16px 0;overflow:hidden}
   .game .top{display:grid;grid-template-columns:100px 1fr;cursor:pointer}
-  .game .numeral{background:linear-gradient(160deg,var(--panel2),#101821);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 6px;gap:2px}
+  .game .numeral{background:linear-gradient(160deg,var(--panel2),#0a1526);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 6px;gap:2px}
   .numeral .rn{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);line-height:1}
   .numeral .yr{font-size:.75rem;color:var(--muted);letter-spacing:.15em}
   .game .body{padding:14px 18px}
@@ -68,7 +68,7 @@
   .badge.L{background:rgba(201,91,91,.13);color:var(--loss);border:1px solid rgba(201,91,91,.4)}
   .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
   .chip{font-size:.68rem;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:2px 10px;background:rgba(255,255,255,.02)}
-  .note{margin-top:9px;font-style:italic;color:#c7b99a;font-size:.9rem;border-left:3px solid var(--gold);padding-left:12px}
+  .note{margin-top:9px;font-style:italic;color:#9fc0f0;font-size:.9rem;border-left:3px solid var(--gold);padding-left:12px}
   .crewline{margin-top:7px;font-size:.73rem;color:var(--muted)}
   .crewline b{color:var(--gold);font-weight:600}
   .expand-hint{font-size:.68rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:8px}
@@ -76,7 +76,7 @@
   .expand-hint .open{display:none}
   .game[open] .expand-hint .open{display:inline}
 
-  .boxscore{border-top:1px solid var(--line);background:#0e141c;padding:16px 18px}
+  .boxscore{border-top:1px solid var(--line);background:#0a1424;padding:16px 18px}
   .boxscore h4{font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;color:var(--gold);font-size:1.05rem;margin:14px 0 8px}
   .boxscore h4:first-child{margin-top:0}
   table.bs{width:100%;border-collapse:collapse;font-size:.8rem}
@@ -447,4 +447,4 @@ document.getElementById("def-records").innerHTML=
   prec("Tackles For Loss",best("defensive","TFL"));
 </script>
 </body>
-  </html>
+</html>
