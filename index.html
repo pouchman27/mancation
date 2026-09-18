@@ -35,6 +35,7 @@
   .stat{background:var(--panel);padding:16px 8px;text-align:center}
   .stat .n{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--gold-bright);line-height:1}
   .stat .l{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  #totals-hero .stats{grid-template-columns:repeat(3,1fr);margin:18px 0 8px}
 
   h2.sec{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--cream);letter-spacing:.06em;margin:44px 0 6px}
   h2.sec::after{content:"";display:block;width:64px;height:3px;background:var(--gold);margin-top:6px}
@@ -137,7 +138,7 @@
     .numeral .rn{font-size:1.5rem}
     .scoreline{font-size:1.22rem}
     .scoreline .sc{font-size:1.22rem}
-    table.sum th:nth-child(2), table.sum td:nth-child(2){display:none}
+    #sumtable th:nth-child(2), #sumtable td:nth-child(2){display:none}
     .leaders{grid-template-columns:1fr}
   }
 </style>
@@ -154,6 +155,7 @@
   <button id="tab-games" class="active" onclick="showTab('games')">The Games</button>
   <button id="tab-records" onclick="showTab('records')">Records</button>
   <button id="tab-career" onclick="showTab('career')">Career</button>
+  <button id="tab-totals" onclick="showTab('totals')">Totals</button>
 </nav>
 
 <div class="wrap">
@@ -214,6 +216,15 @@
     <div class="career-grid" id="career-st"></div>
   </section>
 
+  <section id="view-totals" style="display:none">
+    <h2 class="sec">Running Mancation Totals</h2>
+    <div class="sec-note">Every Mancation game rolled into one ledger - BYU vs. the collective enemy across all 20 trips.</div>
+    <div id="totals-hero"></div>
+    <div style="overflow-x:auto;border-radius:12px">
+      <table class="sum" id="totals-table"></table>
+    </div>
+  </section>
+
 </div>
 
 <footer>
@@ -235,7 +246,7 @@ const BOX = {"2006":{"eventId":"262450012","teams":["BYU Cougars","Arizona Wildc
 const CREW = [["Phil","Founding Member"],["Jef","Founding Member"],["Steve Boss","Founding Member"],["N8","Founding Member"],["Tcrabb","Founding Member"],["Jonnai","Founding Member"],["Wang","Member Emeritus"]];
 
 function showTab(t){
-  for(const v of ['games','records','career']){
+  for(const v of ['games','records','career','totals']){
     document.getElementById('view-'+v).style.display = t===v?'block':'none';
     document.getElementById('tab-'+v).classList.toggle('active', t===v);
   }
@@ -424,6 +435,56 @@ document.getElementById("player-records").innerHTML=
   prec("Interceptions Thrown",best("passing","INT"))+
   prec("Fumbles Lost",best("fumbles","LOST"))+
   prec("Completions",(function(){let r=null;for(const g of GAMES)for(const tm of BOX[g.year].teams)for(const p of((BOX[g.year].players[tm]||{}).passing||[])){const c=num(p.stats["C/ATT"].split("/")[0]);if(!r||c>r.v)r={v:c,disp:String(c),name:p.name,tm,g}}return r})());
+
+/* ---- running totals ---- */
+(function(){
+  const agg={byu:{},opp:{}};
+  const add=(side,key,v)=>{agg[side][key]=(agg[side][key]||0)+num(String(v).replace(/,/g,""))};
+  let byuW=0;
+  for(const g of GAMES){
+    const y=g.year;
+    const byuTm=BOX[y].teams.find(t=>t.includes("BYU"));
+    const oppTm=BOX[y].teams.find(t=>!t.includes("BYU"));
+    if(g.byuScore>g.oppScore)byuW++;
+    add("byu","pts",g.byuScore); add("opp","pts",g.oppScore);
+    for(const [side,tm] of [["byu",byuTm],["opp",oppTm]]){
+      const s=BOX[y].teamStats[tm]||{};
+      add(side,"yds",s["Total Yards"]||0);
+      add(side,"pass",s["Passing"]||0);
+      add(side,"rush",s["Rushing"]||0);
+      add(side,"fd",s["1st Downs"]||0);
+      add(side,"to",s["Turnovers"]||0);
+      const p=String(s["Penalties"]||"0-0").split("-");
+      add(side,"pen",p[0]); add(side,"peny",p[1]||0);
+      const ca=String(s["Comp/Att"]||"0/0").split("/");
+      add(side,"cmp",ca[0]); add(side,"att",ca[1]||0);
+    }
+  }
+  const n=GAMES.length;
+  const fmtN=v=>Math.round(v).toLocaleString("en-US");
+  const avg=v=>(v/n).toFixed(1);
+  const rows=[
+    ["Total Points",fmtN(agg.byu.pts),fmtN(agg.opp.pts)],
+    ["Points Per Game",avg(agg.byu.pts),avg(agg.opp.pts)],
+    ["Total Yards",fmtN(agg.byu.yds),fmtN(agg.opp.yds)],
+    ["Yards Per Game",avg(agg.byu.yds),avg(agg.opp.yds)],
+    ["Passing Yards",fmtN(agg.byu.pass),fmtN(agg.opp.pass)],
+    ["Rushing Yards",fmtN(agg.byu.rush),fmtN(agg.opp.rush)],
+    ["Completions / Attempts",`${Math.round(agg.byu.cmp)} / ${Math.round(agg.byu.att)}`,`${Math.round(agg.opp.cmp)} / ${Math.round(agg.opp.att)}`],
+    ["First Downs",fmtN(agg.byu.fd),fmtN(agg.opp.fd)],
+    ["Turnovers",fmtN(agg.byu.to),fmtN(agg.opp.to),1],
+    ["Penalties",fmtN(agg.byu.pen),fmtN(agg.opp.pen),1],
+    ["Penalty Yards",fmtN(agg.byu.peny),fmtN(agg.opp.peny),1],
+  ];
+  document.getElementById("totals-hero").innerHTML=
+    `<div class="stats"><div class="stat"><div class="n">${byuW}-${n-byuW}</div><div class="l">All-Time Record</div></div>`+
+    `<div class="stat"><div class="n">${fmtN(agg.byu.pts)}</div><div class="l">BYU Points</div></div>`+
+    `<div class="stat"><div class="n">${fmtN(agg.opp.pts)}</div><div class="l">Opponent Points</div></div></div>`;
+  document.getElementById("totals-table").innerHTML=
+    `<tr><th>Category</th><th>BYU</th><th>Opponents</th></tr>`+
+    rows.map(r=>{const b=num(String(r[1]).replace(/[^\d.]/g,"")),o=num(String(r[2]).replace(/[^\d.]/g,""));
+      return `<tr><td>${r[0]}</td><td${b>=o?' style="color:var(--gold-bright);font-weight:600"':""}>${r[1]}</td><td${o>b?' style="color:var(--gold-bright);font-weight:600"':""}>${r[2]}</td></tr>`}).join("");
+})();
 
 /* ---- career aggregates ---- */
 const numByYear={}; GAMES.forEach(g=>numByYear[g.year]=g.numeral);
