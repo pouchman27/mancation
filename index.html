@@ -204,6 +204,7 @@
   <section id="view-career" style="display:none">
     <h2 class="sec">Career Mancation Totals</h2>
     <div class="sec-note">Every player's stats summed across all 20 Mancation games - the all-time leaderboard. Fumbles-lost stats only exist for 8 games (2016, 2019-2025).</div>
+    <div class="career-grid" id="career-points"></div>
     <div class="career-grid" id="career-offense"></div>
 
 
@@ -489,6 +490,54 @@ document.getElementById("player-records").innerHTML=
 /* ---- career aggregates ---- */
 const numByYear={}; GAMES.forEach(g=>numByYear[g.year]=g.numeral);
 const shortTm=t=>t.replace(/ (Cougars|Wildcats|Bruins|Huskies|Aztecs|Seminoles|Beavers|Spartans|Fighting Irish|Longhorns|Wolverines|Tigers|Badgers|Volunteers|Bobcats|Ducks|Razorbacks|Mustangs|Buffaloes)$/,'');
+/* ---- individual points ---- */
+function pointsCareer(){
+  const m={};
+  for(const g of GAMES){const y=g.year;
+    for(const tm of BOX[y].teams){
+      const foe=shortTm(BOX[y].teams.find(t2=>t2!==tm));
+      const cats=BOX[y].players[tm]||{};
+      const per={};
+      const addP=(name,pts,txt)=>{if(!pts||name.trim()==="Team")return;
+        if(!per[name])per[name]={pts:0,parts:[]};
+        per[name].pts+=pts; per[name].parts.push(txt);};
+      for(const r of cats.rushing||[]) addP(r.name,num(r.stats.TD)*6,`${r.stats.TD} rush TD`);
+      for(const r of cats.receiving||[]) addP(r.name,num(r.stats.TD)*6,`${r.stats.TD} rec TD`);
+      for(const r of cats.interceptions||[]) addP(r.name,num(r.stats.TD)*6,`${r.stats.TD} INT TD`);
+      for(const r of cats.kickReturns||[]) addP(r.name,num(r.stats.TD)*6,`${r.stats.TD} KR TD`);
+      for(const r of cats.puntReturns||[]) addP(r.name,num(r.stats.TD)*6,`${r.stats.TD} PR TD`);
+      for(const r of cats.kicking||[]) addP(r.name,num(r.stats.PTS),`${r.stats.FG} FG, ${r.stats.XP} XP`);
+      for(const [name,v] of Object.entries(per)){
+        const k=name+"|"+tm;
+        if(!m[k])m[k]={name,tm,pts:0,lines:[]};
+        m[k].pts+=v.pts;
+        m[k].lines.push({year:y,foe,pts:v.pts,txt:v.parts.join(", ")});
+      }
+    }
+  }
+  return Object.values(m);
+}
+function pointsCard(){
+  const rows=pointsCareer().sort((a,b)=>b.pts-a.pts).slice(0,5);
+  if(!rows.length)return "";
+  return `<div class="career-card"><h4>Total Points</h4><ol>`+rows.map(p=>{
+    const byu=p.tm.includes("BYU");
+    const tag=byu?"BYU":shortTm(p.tm);
+    const games=p.lines.slice().sort((a,b)=>a.year-b.year).map(l=>
+      `<div class="pg"><span>${numByYear[l.year]} (${l.year}) vs ${l.foe}</span><span class="gs">${l.pts} pts - ${l.txt}</span></div>`).join("");
+    return `<details class="cplayer"><summary><span class="pl">${p.name}<span class="tg${byu?" byu":""}">${tag}</span></span><span class="vl">${p.pts}<span class="gp">${p.lines.length}g</span></span></summary><div class="pgames">${games}</div></details>`;
+  }).join("")+`</ol></div>`;
+}
+function bestPoints(){
+  let best=null;
+  for(const p of pointsCareer()){
+    const tm=p.tm;
+    for(const l of p.lines){
+      if(!best||l.pts>best.pts)best={pts:l.pts,name:p.name,tm,g:GAMES.find(g2=>String(g2.year)===String(l.year))};
+    }
+  }
+  return best;
+}
 function career(cat){
   const m={};
   for(const y of Object.keys(BOX)){
@@ -577,6 +626,9 @@ document.getElementById("pen-records").innerHTML=
   penCard("Most Penalty Yards (Opponent)",oppPens,"y",1)+
   penCard("Fewest Penalties (Opponent)",oppPens,"c",-1);
 const bestMade=(cat,key)=>{let b=null;for(const g of GAMES)for(const tm of BOX[g.year].teams)for(const r of((BOX[g.year].players[tm]||{})[cat]||[])){if(r.name.trim()==="Team")continue;const p=String(r.stats[key]||"0/0").split("/");const v=num(p[0]);if(v>0&&(!b||v>b.v))b={v,disp:p[0]+"/"+p[1],name:r.name,tm,g}}return b};
+document.getElementById("career-points").innerHTML=pointsCard();
+document.getElementById("player-records").innerHTML=
+  (function(){const b=bestPoints();return b?`<div class="rec"><div class="cat">Total Points</div><div class="val">${b.pts}</div><div class="who">${b.name} <span style="color:var(--muted)">(${b.tm.includes("BYU")?"BYU":"opp"})</span></div><div class="where">${gref(b.g)}</div></div>`:""})()+document.getElementById("player-records").innerHTML;
 document.getElementById("st-records").innerHTML=
   prec("Field Goals Made",bestMade("kicking","FG"))+
   prec("PATs Made",bestMade("kicking","XP"))+
@@ -584,4 +636,4 @@ document.getElementById("st-records").innerHTML=
   prec("Punt Return Yards",best("puntReturns","YDS"));
 </script>
 </body>
-  </html>
+      </html>
