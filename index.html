@@ -45,6 +45,9 @@
   table.sum td{padding:9px 8px;border-bottom:1px solid rgba(38,51,74,.5)}
   table.sum tr:last-child td{border-bottom:none}
   table.sum tr:hover td{background:rgba(217,164,65,.05)}
+  table.sum a{color:inherit;text-decoration:none}
+  table.sum td.rn a{color:var(--gold-bright);border-bottom:1px dotted var(--gold)}
+  .game{scroll-margin-top:64px}
   td.w{color:var(--win);font-weight:700} td.l{color:var(--loss);font-weight:700}
   td.rn, th.rn{color:var(--gold-bright);white-space:nowrap}
   .rk{font-size:.72em;color:var(--muted)}
@@ -229,9 +232,9 @@ document.getElementById("sumtable").innerHTML =
   [...GAMES].reverse().map(g=>{
     const w=g.byuScore>g.oppScore;
     return `<tr>
-      <td class="rn">${g.numeral}</td>
-      <td>${g.month.slice(0,3)} ${g.day}, ${g.year}</td>
-      <td>${rk(g.byuRank)}BYU vs ${rk(g.oppRank)}${g.opp}</td>
+      <td class="rn"><a href="#game-${g.numeral}">${g.numeral}</a></td>
+      <td><a href="#game-${g.numeral}">${g.month.slice(0,3)} ${g.day}, ${g.year}</a></td>
+      <td><a href="#game-${g.numeral}">${rk(g.byuRank)}BYU vs ${rk(g.oppRank)}${g.opp}</a></td>
       <td>${g.byuScore}-${g.oppScore}</td>
       <td class="${w?'w':'l'}">${w?'W':'L'}</td>
       <td>${g.city}, ${g.state}</td></tr>`;
@@ -285,7 +288,7 @@ function leadersBlock(y){
 document.getElementById("games").innerHTML=[...GAMES].reverse().map(g=>{
   const w=g.byuScore>g.oppScore, y=g.year;
   const hasBox=!!BOX[y];
-  return `<details class="game">
+  return `<details class="game" id="game-${g.numeral}">
     <summary class="top" style="list-style:none">
       <div class="numeral"><div class="rn">${g.numeral}</div><div class="yr">${g.year}</div></div>
       <div class="body">
@@ -313,6 +316,11 @@ document.getElementById("games").innerHTML=[...GAMES].reverse().map(g=>{
     </div>`:""}
   </details>`;
 }).join("");
+
+/* honor a #game- hash that arrived before render (shared links) */
+if(location.hash && document.querySelector(location.hash)){
+  setTimeout(()=>document.querySelector(location.hash).scrollIntoView({behavior:"instant",block:"start"}),50);
+}
 
 /* ---- crew ---- */
 document.getElementById("crew").innerHTML=CREW.map(c=>
@@ -375,4 +383,4 @@ document.getElementById("def-records").innerHTML=
   prec("Tackles For Loss",best("defensive","TFL"));
 </script>
 </body>
-</html>
+  </html>
