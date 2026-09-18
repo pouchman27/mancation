@@ -113,6 +113,15 @@
   .career-card .pl .tg.byu{color:var(--gold)}
   .career-card .vl{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--gold-bright);white-space:nowrap}
   .career-card .vl .gp{font-family:'Libre Franklin',sans-serif;font-size:.66rem;color:var(--muted);margin-left:5px}
+  details.cplayer{border-bottom:1px solid rgba(38,51,74,.35)}
+  details.cplayer:last-child{border-bottom:none}
+  details.cplayer summary{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:3px 0;cursor:pointer;list-style:none}
+  details.cplayer summary::before{content:"\25B8";color:var(--muted);margin-right:6px;font-size:.7rem;align-self:center}
+  details.cplayer[open] summary::before{content:"\25BE"}
+  details.cplayer summary .pl{flex:1}
+  .pgames{margin:2px 0 8px 18px;border-left:2px solid var(--line);padding-left:10px}
+  .pgames .pg{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--muted);padding:2.5px 0}
+  .pgames .pg .gs{color:var(--cream);white-space:nowrap}
   .caveat{font-size:.78rem;color:var(--muted);font-style:italic;margin-top:6px}
 
   .crew{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0}
@@ -400,14 +409,18 @@ document.getElementById("player-records").innerHTML=
   prec("Completions",(function(){let r=null;for(const g of GAMES)for(const tm of BOX[g.year].teams)for(const p of((BOX[g.year].players[tm]||{}).passing||[])){const c=num(p.stats["C/ATT"].split("/")[0]);if(!r||c>r.v)r={v:c,disp:String(c),name:p.name,tm,g}}return r})());
 
 /* ---- career aggregates ---- */
+const numByYear={}; GAMES.forEach(g=>numByYear[g.year]=g.numeral);
+const shortTm=t=>t.replace(/ (Cougars|Wildcats|Bruins|Huskies|Aztecs|Seminoles|Beavers|Spartans|Fighting Irish|Longhorns|Wolverines|Tigers|Badgers|Volunteers|Bobcats|Ducks|Razorbacks|Mustangs|Buffaloes)$/,'');
 function career(cat){
   const m={};
   for(const y of Object.keys(BOX)){
     for(const tm of BOX[y].teams){
+      const foe=shortTm(BOX[y].teams.find(t=>t!==tm));
       for(const r of ((BOX[y].players[tm]||{})[cat]||[])){
         const k=r.name+"|"+tm;
-        if(!m[k]) m[k]={name:r.name,tm,gp:0};
+        if(!m[k]) m[k]={name:r.name,tm,gp:0,lines:[]};
         m[k].gp++;
+        m[k].lines.push({year:y,foe,stats:r.stats});
         for(const kk of Object.keys(r.stats)){
           const vv=r.stats[kk];
           if(kk==="C/ATT"){const p=String(vv).split("/");m[k]._c=(m[k]._c||0)+num(p[0]);m[k]._a=(m[k]._a||0)+num(p[1]);}
@@ -418,14 +431,22 @@ function career(cat){
   }
   return Object.values(m);
 }
+function gameLine(cat,s){
+  if(cat==="passing")return `${s["C/ATT"]}, ${s.YDS} yds, ${s.TD} TD, ${s.INT} INT`;
+  if(cat==="rushing")return `${s.CAR} car, ${s.YDS} yds, ${s.TD} TD`;
+  if(cat==="receiving")return `${s.REC} rec, ${s.YDS} yds, ${s.TD} TD`;
+  return `${s.TOT} tot, ${s.SACKS} sk, ${s.TFL} TFL`;
+}
 const fmt=v=>Number.isInteger(v)?String(v):v.toFixed(1);
 function careerCard(cat,key,title,extra){
   const rows=career(cat).filter(p=>num(p[key])>0).sort((a,b)=>num(b[key])-num(a[key])).slice(0,5);
   if(!rows.length)return "";
   return `<div class="career-card"><h4>${title}</h4><ol>`+rows.map(p=>{
     const byu=p.tm.includes("BYU");
-    const tag=byu?"BYU":p.tm.replace(/ (Cougars|Wildcats|Bruins|Huskies|Aztecs|Seminoles|Beavers|Spartans|Fighting Irish|Longhorns|Wolverines|Tigers|Badgers|Volunteers|Bobcats|Ducks|Razorbacks|Mustangs|Buffaloes)$/,'');
-    return `<li><span class="pl">${p.name}<span class="tg${byu?" byu":""}">${tag}</span></span><span class="vl">${fmt(p[key])}${extra?extra(p):""}<span class="gp">${p.gp}g</span></span></li>`;
+    const tag=byu?"BYU":shortTm(p.tm);
+    const games=p.lines.slice().sort((a,b)=>a.year-b.year).map(l=>
+      `<div class="pg"><span>${numByYear[l.year]} (${l.year}) vs ${l.foe}</span><span class="gs">${gameLine(cat,l.stats)}</span></div>`).join("");
+    return `<details class="cplayer"><summary><span class="pl">${p.name}<span class="tg${byu?" byu":""}">${tag}</span></span><span class="vl">${fmt(p[key])}${extra?extra(p):""}<span class="gp">${p.gp}g</span></span></summary><div class="pgames">${games}</div></details>`;
   }).join("")+`</ol></div>`;
 }
 document.getElementById("career-offense").innerHTML=
@@ -447,4 +468,4 @@ document.getElementById("def-records").innerHTML=
   prec("Tackles For Loss",best("defensive","TFL"));
 </script>
 </body>
-</html>
+  </html>
