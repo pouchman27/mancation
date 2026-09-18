@@ -342,12 +342,14 @@ const VENUES = [
     if(g.byuScore>g.oppScore)o.w++; else if(g.byuScore<g.oppScore)o.l++; else o.t++;
     o.years.push(g.numeral);
   });
-  const rows=Object.entries(byOpp).sort((a,b)=>b[1].n-a[1].n||a[0].localeCompare(b[0]));
-  let h='<thead><tr><th>Opponent</th><th>Mtgs</th><th>Series</th><th>PF</th><th>PA</th><th>Trips</th></tr></thead><tbody>';
+  const rows=Object.entries(byOpp).sort((a,b)=>(b[1].pf-b[1].pa)-(a[1].pf-a[1].pa));
+  let h='<thead><tr><th>Opponent</th><th>Mtgs</th><th>Series</th><th>PF</th><th>PA</th><th>PD</th><th>Trips</th></tr></thead><tbody>';
   rows.forEach(([opp,o])=>{
     const series=o.w+'-'+o.l+(o.t?'-'+o.t:'');
     const cls=o.w>o.l?'style="color:#7ee2a8"':(o.w<o.l?'style="color:#ff9d9d"':'');
-    h+='<tr><td>'+opp+'</td><td>'+o.n+'</td><td '+cls+'><b>'+series+'</b></td><td>'+o.pf+'</td><td>'+o.pa+'</td><td>'+o.years.join(', ')+'</td></tr>';
+    const pd=o.pf-o.pa;
+    const pdc=pd>0?'style="color:#7ee2a8"':(pd<0?'style="color:#ff9d9d"':'');
+    h+='<tr><td>'+opp+'</td><td>'+o.n+'</td><td '+cls+'><b>'+series+'</b></td><td>'+o.pf+'</td><td>'+o.pa+'</td><td '+pdc+'>'+(pd>0?'+':'')+pd+'</td><td>'+o.years.join(', ')+'</td></tr>';
   });
   document.getElementById('h2h-table').innerHTML=h+'</tbody>';
 })();
@@ -762,4 +764,4 @@ document.getElementById("st-records").innerHTML=
   prec("Punt Return Yards",best("puntReturns","YDS"));
 </script>
 </body>
-                    </html>
+    </html>
