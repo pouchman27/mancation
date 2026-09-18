@@ -102,6 +102,17 @@
   .rec .who{font-size:.84rem;color:var(--cream);margin-top:2px}
   .rec .where{font-size:.74rem;color:var(--muted);margin-top:2px}
   .rec.team .val{color:var(--cream)}
+  .career-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:14px 0}
+  .career-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .career-card h4{font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;color:var(--gold);font-size:1.05rem;margin-bottom:8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .career-card ol{list-style:none}
+  .career-card li{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;padding:3px 0;border-bottom:1px solid rgba(38,51,74,.35)}
+  .career-card li:last-child{border-bottom:none}
+  .career-card .pl{color:var(--cream)}
+  .career-card .pl .tg{font-size:.68rem;color:var(--muted);margin-left:4px}
+  .career-card .pl .tg.byu{color:var(--gold)}
+  .career-card .vl{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--gold-bright);white-space:nowrap}
+  .career-card .vl .gp{font-family:'Libre Franklin',sans-serif;font-size:.66rem;color:var(--muted);margin-left:5px}
   .caveat{font-size:.78rem;color:var(--muted);font-style:italic;margin-top:6px}
 
   .crew{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0}
@@ -133,6 +144,7 @@
 <nav class="tabs">
   <button id="tab-games" class="active" onclick="showTab('games')">The Games</button>
   <button id="tab-records" onclick="showTab('records')">Records</button>
+  <button id="tab-career" onclick="showTab('career')">Career</button>
 </nav>
 
 <div class="wrap">
@@ -169,6 +181,16 @@
     <div class="rec-grid" id="def-records"></div>
   </section>
 
+  <section id="view-career" style="display:none">
+    <h2 class="sec">Career Mancation Totals</h2>
+    <div class="sec-note">Every player's stats summed across all 20 Mancation games - the all-time leaderboard. BYU in gold, opponents in gray.</div>
+    <div class="career-grid" id="career-offense"></div>
+
+    <h2 class="sec">Career Defense</h2>
+    <div class="caveat">Defensive box-score stats only exist for 2016, 2024, and 2025 - these totals cover just those three games, not all 20.</div>
+    <div class="career-grid" id="career-defense"></div>
+  </section>
+
 </div>
 
 <footer>
@@ -190,10 +212,10 @@ const BOX = {"2006":{"eventId":"262450012","teams":["BYU Cougars","Arizona Wildc
 const CREW = ["Phil","Jef","Steve Boss","N8","Tcrabb","Jonnai"];
 
 function showTab(t){
-  document.getElementById('view-games').style.display = t==='games'?'block':'none';
-  document.getElementById('view-records').style.display = t==='records'?'block':'none';
-  document.getElementById('tab-games').classList.toggle('active', t==='games');
-  document.getElementById('tab-records').classList.toggle('active', t==='records');
+  for(const v of ['games','records','career']){
+    document.getElementById('view-'+v).style.display = t===v?'block':'none';
+    document.getElementById('tab-'+v).classList.toggle('active', t===v);
+  }
   window.scrollTo({top:0});
 }
 
@@ -376,6 +398,48 @@ document.getElementById("player-records").innerHTML=
   prec("Receiving Yards",best("receiving","YDS"))+
   prec("Receiving TDs",best("receiving","TD"))+
   prec("Completions",(function(){let r=null;for(const g of GAMES)for(const tm of BOX[g.year].teams)for(const p of((BOX[g.year].players[tm]||{}).passing||[])){const c=num(p.stats["C/ATT"].split("/")[0]);if(!r||c>r.v)r={v:c,disp:String(c),name:p.name,tm,g}}return r})());
+
+/* ---- career aggregates ---- */
+function career(cat){
+  const m={};
+  for(const y of Object.keys(BOX)){
+    for(const tm of BOX[y].teams){
+      for(const r of ((BOX[y].players[tm]||{})[cat]||[])){
+        const k=r.name+"|"+tm;
+        if(!m[k]) m[k]={name:r.name,tm,gp:0};
+        m[k].gp++;
+        for(const kk of Object.keys(r.stats)){
+          const vv=r.stats[kk];
+          if(kk==="C/ATT"){const p=String(vv).split("/");m[k]._c=(m[k]._c||0)+num(p[0]);m[k]._a=(m[k]._a||0)+num(p[1]);}
+          else m[k][kk]=(m[k][kk]||0)+(num(String(vv).replace(/,/g,"")));
+        }
+      }
+    }
+  }
+  return Object.values(m);
+}
+const fmt=v=>Number.isInteger(v)?String(v):v.toFixed(1);
+function careerCard(cat,key,title,extra){
+  const rows=career(cat).filter(p=>num(p[key])>0).sort((a,b)=>num(b[key])-num(a[key])).slice(0,5);
+  if(!rows.length)return "";
+  return `<div class="career-card"><h4>${title}</h4><ol>`+rows.map(p=>{
+    const byu=p.tm.includes("BYU");
+    const tag=byu?"BYU":p.tm.replace(/ (Cougars|Wildcats|Bruins|Huskies|Aztecs|Seminoles|Beavers|Spartans|Fighting Irish|Longhorns|Wolverines|Tigers|Badgers|Volunteers|Bobcats|Ducks|Razorbacks|Mustangs|Buffaloes)$/,'');
+    return `<li><span class="pl">${p.name}<span class="tg${byu?" byu":""}">${tag}</span></span><span class="vl">${fmt(p[key])}${extra?extra(p):""}<span class="gp">${p.gp}g</span></span></li>`;
+  }).join("")+`</ol></div>`;
+}
+document.getElementById("career-offense").innerHTML=
+  careerCard("passing","YDS","Passing Yards",p=>` <span style="font-size:.62rem;color:var(--muted)">${p._c}/${p._a}</span>`)+
+  careerCard("passing","TD","Passing TDs")+
+  careerCard("rushing","YDS","Rushing Yards")+
+  careerCard("rushing","TD","Rushing TDs")+
+  careerCard("receiving","REC","Receptions")+
+  careerCard("receiving","YDS","Receiving Yards")+
+  careerCard("receiving","TD","Receiving TDs");
+document.getElementById("career-defense").innerHTML=
+  careerCard("defensive","TOT","Tackles")+
+  careerCard("defensive","SACKS","Sacks")+
+  careerCard("defensive","TFL","Tackles For Loss");
 
 document.getElementById("def-records").innerHTML=
   prec("Tackles",best("defensive","TOT"))+
