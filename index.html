@@ -181,6 +181,10 @@
     <div class="sec-note">BYU across all Mancation games.</div>
     <div class="rec-grid" id="team-records"></div>
 
+    <h2 class="sec">Penalty Records</h2>
+    <div class="caveat">Penalties are a team stat - college box scores don't track them per player, so these are team marks across all 20 games.</div>
+    <div class="rec-grid" id="pen-records"></div>
+
     <h2 class="sec">Individual Records</h2>
     <div class="sec-note">The best single-game performances by any player, BYU or opponent, in Mancation history. Fumbles-lost stats only exist for 8 games (2016, 2019-2025).</div>
     <div class="rec-grid" id="player-records"></div>
@@ -500,6 +504,17 @@ document.getElementById("def-records").innerHTML=
   prec("Interceptions",best("interceptions","INT"))+
   prec("INT Return Yards",best("interceptions","YDS"))+
   prec("Fumble Recoveries",best("fumbles","REC"));
+const penAll=[];
+for(const g of GAMES){const y=g.year;for(const tm of BOX[y].teams){const p=String((BOX[y].teamStats[tm]||{})["Penalties"]||"0-0").split("-");penAll.push({g,tm,c:num(p[0]),y:num(p[1])})}}
+const penCard=(cat,list,key,dir)=>{const a=list.slice().sort((x,y2)=>dir*(y2[key]-x[key]));const b=a[0];return b?`<div class="rec"><div class="cat">${cat}</div><div class="val">${key==="c"?b.c+" pen":b.y+" yds"}</div><div class="who">${shortTm(b.tm)}</div><div class="where">${gref(b.g)}</div></div>`:""};
+const byuPens=penAll.filter(p=>p.tm.includes("BYU")), oppPens=penAll.filter(p=>!p.tm.includes("BYU"));
+document.getElementById("pen-records").innerHTML=
+  penCard("Most Penalties (BYU)",byuPens,"c",1)+
+  penCard("Most Penalty Yards (BYU)",byuPens,"y",1)+
+  penCard("Fewest Penalties (BYU)",byuPens,"c",-1)+
+  penCard("Most Penalties (Opponent)",oppPens,"c",1)+
+  penCard("Most Penalty Yards (Opponent)",oppPens,"y",1)+
+  penCard("Fewest Penalties (Opponent)",oppPens,"c",-1);
 const bestMade=(cat,key)=>{let b=null;for(const g of GAMES)for(const tm of BOX[g.year].teams)for(const r of((BOX[g.year].players[tm]||{})[cat]||[])){if(r.name.trim()==="Team")continue;const p=String(r.stats[key]||"0/0").split("/");const v=num(p[0]);if(v>0&&(!b||v>b.v))b={v,disp:p[0]+"/"+p[1],name:r.name,tm,g}}return b};
 document.getElementById("st-records").innerHTML=
   prec("Field Goals Made",bestMade("kicking","FG"))+
