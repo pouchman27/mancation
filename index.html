@@ -257,7 +257,7 @@
 
   <section id="view-competitions" style="display:none">
     <h2 class="sec">Trip Competitions</h2>
-    <div class="sec-note">The games within the game. Every Mancation side quest, scored for posterity.</div>
+    <div class="sec-note">The games within the game. Crew-only standings, with overall field position noted.</div>
     <div id="competitions"></div>
   </section>
 
@@ -399,27 +399,27 @@ const COMPETITIONS = [
    {"place":1,"name":"Robert Cook","best":"30.550"},
    {"place":2,"name":"Ry Heyman","best":"30.826"},
    {"place":3,"name":"Armondo Arellano","best":"31.197"},
-   {"place":4,"name":"Todd Crabb","best":"31.277"},
+   {"place":4,"crew":true,"name":"Todd Crabb","best":"31.277"},
    {"place":5,"name":"Tyson Arellano","best":"31.294"},
    {"place":6,"name":"Mike Easley","best":"31.327"},
-   {"place":7,"name":"Phil Williams","best":"31.647"},
-   {"place":8,"name":"Steve Erekson","best":"32.231"},
-   {"place":9,"name":"Nathan Weir","best":"32.451","avg":"35.121","laps":11,"note":"best lap on lap 11"},
-   {"place":10,"name":"Jonathan Miller","best":"32.731"},
-   {"place":11,"name":"Jess Haddow","best":"33.348"},
+   {"place":7,"crew":true,"name":"Phil Williams","best":"31.647"},
+   {"place":8,"crew":true,"name":"Steve Erekson","best":"32.231"},
+   {"place":9,"crew":true,"name":"Nathan Weir","best":"32.451","avg":"35.121","laps":11,"note":"best lap on lap 11"},
+   {"place":10,"crew":true,"name":"Jonathan Miller","best":"32.731"},
+   {"place":11,"crew":true,"name":"Jess Haddow","best":"33.348"},
    {"place":12,"name":"Matthew Easley","best":"36.530"}]},
  {"name":"K1 Speed - Race 2","type":"Go-Karting","venue":"K1 Speed, Thornton, CO","date":"September 19, 2026","time":"11:44 AM","trip":"XXI","field":12,
   "lapsFor":"Nathan Weir","lapsList":["34.905","33.979","39.378","33.498","35.834","32.008","33.914","33.588","32.846","37.842","38.182","36.883"],
   "results":[
    {"place":1,"name":"Ry Heyman","best":"30.517","note":"best lap on lap 11"},
    {"place":2,"name":"Isaias Lopez","best":"31.112"},
-   {"place":3,"name":"Todd Crabb","best":"31.264"},
+   {"place":3,"crew":true,"name":"Todd Crabb","best":"31.264"},
    {"place":4,"name":"Chris Roda","best":"31.378"},
-   {"place":5,"name":"Steve Erekson","best":"31.410"},
-   {"place":6,"name":"Jonathan Miller","best":"31.743"},
-   {"place":7,"name":"Phil Williams","best":"31.761"},
-   {"place":8,"name":"Jess Haddow","best":"31.820"},
-   {"place":9,"name":"Nathan Weir","best":"32.008","avg":"35.238","laps":12,"note":"best lap on lap 6 - 0.443s faster than Race 1"},
+   {"place":5,"crew":true,"name":"Steve Erekson","best":"31.410"},
+   {"place":6,"crew":true,"name":"Jonathan Miller","best":"31.743"},
+   {"place":7,"crew":true,"name":"Phil Williams","best":"31.761"},
+   {"place":8,"crew":true,"name":"Jess Haddow","best":"31.820"},
+   {"place":9,"crew":true,"name":"Nathan Weir","best":"32.008","avg":"35.238","laps":12,"note":"best lap on lap 6 - 0.443s faster than Race 1"},
    {"place":10,"name":"Jamie Rivera","best":"37.061"},
    {"place":11,"name":"Elvis Codjia","best":"40.176"},
    {"place":12,"name":"Guini Toukon","best":"40.352"}]}
@@ -428,12 +428,12 @@ const COMPETITIONS = [
 (function competitions(){
   const el=document.getElementById('competitions'); if(!el)return;
   el.innerHTML=COMPETITIONS.map(c=>{
-    const CREW=['Nathan Weir','Phil Williams','Todd Crabb','Jef','Steve Boss','N8','Tcrabb','Jonnai','Wang'];
-    const rows=c.results.slice().sort((a,b)=>a.place-b.place).map(r=>{
-      const crew=CREW.includes(r.name);
-      const nm=crew?'<span style="color:var(--gold-bright);font-weight:700">'+r.name+'</span>':r.name;
-      return '<tr'+(crew?' style="background:rgba(240,180,41,.05)"':'')+'><td><b>'+r.place+'</b><span style="color:var(--muted);font-size:12px"> of '+c.field+'</span></td>'+
-        '<td>'+nm+'</td>'+
+    const crewRows=c.results.filter(r=>r.crew).sort((a,b)=>parseFloat(a.best)-parseFloat(b.best));
+    const ord=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
+    const rows=crewRows.map((r,i)=>{
+      const nm='<span style="color:var(--gold-bright);font-weight:700">'+r.name+'</span>';
+      return '<tr style="background:rgba(240,180,41,.05)"><td><b>'+(i+1)+'</b><span style="color:var(--muted);font-size:12px"> of '+crewRows.length+'</span></td>'+
+        '<td>'+nm+'<div style="color:var(--muted);font-size:11px">'+ord(r.place)+' of '+c.field+' overall</div></td>'+
         '<td>'+r.best+(r.note?'<div style="color:var(--muted);font-size:11px">'+r.note+'</div>':'')+'</td>'+
         '<td>'+(r.avg!=null?r.avg:'-')+'</td>'+
         '<td>'+(r.laps!=null?r.laps:'-')+'</td></tr>';
