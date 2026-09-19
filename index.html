@@ -138,6 +138,8 @@
   .member{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 14px;text-align:center}
   .member .jersey{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold-bright)}
   .member .role{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+  .member .accolade{font-size:.72rem;color:var(--gold-bright);margin-top:8px;line-height:1.45}
+  .member .quote{font-size:.68rem;color:var(--muted);font-style:italic;margin-top:5px;line-height:1.4}
 
   footer{border-top:1px solid var(--line);margin-top:56px;padding:28px 18px 44px;text-align:center;color:var(--muted);font-size:.78rem}
   footer .sig{color:var(--gold);letter-spacing:.25em;font-size:.7rem;text-transform:uppercase}
@@ -456,7 +458,7 @@ if(FILTER!=='total'){
 }
 
 
-const CREW = [["Phil","Founding Member"],["Jef","Founding Member"],["Steve Boss","Founding Member"],["N8","Founding Member"],["Tcrabb","Founding Member"],["Jonnai","Founding Member"],["Wang","Member Emeritus"]];
+const CREW = [["Phil","Founding Member"],["Jef","Founding Member"],["Steve Boss","Founding Member"],["N8","Founding Member"],["Tcrabb","Founding Member","XXI Crew Karting Champion · XXI Walk Leader","Delighted. You’re all part of the hive mind now."],["Jonnai","Founding Member"],["Wang","Member Emeritus"]];
 
 function showTab(t){
   for(const v of ['games','records','career','totals','competitions']){
@@ -602,8 +604,8 @@ if(location.hash && location.hash.startsWith('#game-') && document.querySelector
 }
 
 /* ---- crew ---- */
-document.getElementById("crew").innerHTML=CREW.map(([c,role])=>
-  `<div class="member"><div class="jersey">${c}</div><div class="role">${role}</div></div>`).join("");
+document.getElementById("crew").innerHTML=CREW.map(([c,role,accolade,quote])=>
+  `<div class="member"><div class="jersey">${c}</div><div class="role">${role}</div>${accolade?`<div class="accolade">${accolade}</div>`:""}${quote?`<div class="quote">“${quote}”</div>`:""}</div>`).join("");
 
 /* ---- records ---- */
 const margin=g=>g.byuScore-g.oppScore;
@@ -859,3 +861,4 @@ document.getElementById("st-records").innerHTML=
 </script>
 </body>
 </html>
+
