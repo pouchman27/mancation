@@ -435,7 +435,6 @@ const COMPETITIONS = [
       return '<tr style="background:rgba(240,180,41,.05)"><td><b>'+(i+1)+'</b><span style="color:var(--muted);font-size:12px"> of '+crewRows.length+'</span></td>'+
         '<td>'+nm+'<div style="color:var(--muted);font-size:11px">'+ord(r.place)+' of '+c.field+' overall</div></td>'+
         '<td>'+r.best+(r.note?'<div style="color:var(--muted);font-size:11px">'+r.note+'</div>':'')+'</td>'+
-        '<td>'+(r.avg!=null?r.avg:'-')+'</td>'+
         '<td>'+(r.laps!=null?r.laps:'-')+'</td></tr>';
     }).join('');
     const lapBlock=c.lapsList?'<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--gold);font-size:.8rem;letter-spacing:.06em">'+c.lapsFor.toUpperCase()+' LAP BY LAP</summary><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+c.lapsList.map((l,i)=>'<span class="chip">L'+(i+1)+' &middot; '+l+'</span>').join('')+'</div></details>':'';
@@ -444,7 +443,7 @@ const COMPETITIONS = [
       '<div class="body">'+
       '<div class="scoreline"><span style="font-size:19px;font-weight:800;letter-spacing:.04em">'+c.name+'</span><span class="badge" style="background:var(--panel2)">'+c.type+'</span></div>'+
       '<div class="meta"><span class="chip">'+c.venue+'</span><span class="chip">'+c.date+(c.time?', '+c.time:'')+'</span><span class="chip">Mancation '+c.trip+'</span></div>'+
-      '<div style="overflow-x:auto;margin-top:10px"><table class="sum"><thead><tr><th>Place</th><th>Driver</th><th>Best Lap</th><th>Avg Lap</th><th>Laps</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+lapBlock+
+      '<div style="overflow-x:auto;margin-top:10px"><table class="sum"><thead><tr><th>Place</th><th>Driver</th><th>Best Lap</th><th>Laps</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+lapBlock+
       '</div></div></div>';
   }).join('');
 })();
