@@ -467,11 +467,39 @@ const COMPETITIONS = [
    {"place":10,"name":"Jamie Rivera","best":"37.061"},
    {"place":11,"name":"Elvis Codjia","best":"40.176"},
    {"place":12,"name":"Guini Toukon","best":"40.352"}]}
+ ,
+ {"name":"Colorado Clays","type":"Sporting Clays","venue":"Colorado Clays, Brighton, CO","date":"September 20, 2026","trip":"XXI","clays":true,"stations":7,
+  "results":[
+   {"place":1,"name":"Nate","scores":[3,7,5,5,4,3,4],"total":31},
+   {"place":2,"name":"Todd","scores":[2,4,5,3,4,4],"total":22},
+   {"place":3,"name":"Johnny","scores":[3,4,2,3,3],"total":15},
+   {"place":3,"name":"Phil","scores":[1,5,3,2,4],"total":15},
+   {"place":5,"name":"Steve","scores":[1,2,2,5,3,1],"total":14},
+   {"place":6,"name":"Jess","scores":[0,3,1,2,2],"total":8}]}
 ];
 
 (function competitions(){
   const el=document.getElementById('competitions'); if(!el)return;
   el.innerHTML=COMPETITIONS.map(c=>{
+    if(c.clays){
+      const ord2=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
+      const stHeads=Array.from({length:c.stations},(_,i)=>'<th>S'+(i+1)+'</th>').join('');
+      const rows2=c.results.map(r=>{
+        const cells=Array.from({length:c.stations},(_,i)=>'<td>'+(r.scores[i]!=null?r.scores[i]:'<span style="color:var(--muted)">-</span>')+'</td>').join('');
+        const champ=r.place===1?'<span class="pred-badge">XXI CLAYS CHAMPION</span>':'';
+        return '<tr style="background:rgba(240,180,41,.05)"><td><b>'+ord2(r.place)+'</b></td>'+
+          '<td><span style="color:var(--gold-bright);font-weight:700">'+r.name+'</span>'+champ+'</td>'+
+          cells+'<td><b>'+r.total+'</b></td></tr>';
+      }).join('');
+      return '<div class="game"><div class="top" style="cursor:default">'+
+        '<div class="numeral"><div class="rn">'+c.trip+'</div><div class="yr">'+c.date.slice(-4)+'</div></div>'+
+        '<div class="body">'+
+        '<div class="scoreline"><span style="font-size:19px;font-weight:800;letter-spacing:.04em">'+c.name+'</span><span class="badge" style="background:var(--panel2)">'+c.type+'</span></div>'+
+        '<div class="meta"><span class="chip">'+c.venue+'</span><span class="chip">'+c.date+'</span><span class="chip">Mancation '+c.trip+'</span></div>'+
+        '<div style="overflow-x:auto;margin-top:10px"><table class="sum"><thead><tr><th>Place</th><th>Shooter</th>'+stHeads+'<th>Total</th></tr></thead><tbody>'+rows2+'</tbody></table></div>'+
+        '<div style="color:var(--muted);font-size:11px;margin-top:8px">Station-by-station hits from the squad scorecards (X = hit, O = miss). Cards show different numbers of scored stations per shooter (5-7), so dashes mark stations not on that card; totals are as written on each card.</div>'+
+        '</div></div></div>';
+    }
     const crewRows=c.results.filter(r=>r.crew).sort((a,b)=>parseFloat(a.best)-parseFloat(b.best));
     const ord=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
     const rows=crewRows.map((r,i)=>{
