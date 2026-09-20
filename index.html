@@ -438,7 +438,7 @@ const PREDICTIONS = [
 })();
 
 const COMPETITIONS = [
- {"name":"K1 Speed - Race 1","type":"Go-Karting","venue":"K1 Speed, Thornton, CO","date":"September 19, 2026","time":"11:30 AM","trip":"XXI","field":12,
+ {"name":"K1 Speed - Race 1","type":"Go-Karting","venue":"K1 Speed, Thornton, CO","date":"September 19, 2026","time":"11:30 AM","trip":"XXI","field":12,"pointsEligible":true,
   "lapsFor":"Nathan Weir","lapsList":["35.790","34.760","34.146","34.442","34.227","33.680","39.975","37.874","34.114","34.876","32.451"],
   "results":[
    {"place":1,"name":"Robert Cook","best":"30.550"},
@@ -453,7 +453,7 @@ const COMPETITIONS = [
    {"place":10,"crew":true,"name":"Jonathan Miller","best":"32.731"},
    {"place":11,"crew":true,"name":"Jess Haddow","best":"33.348"},
    {"place":12,"name":"Matthew Easley","best":"36.530"}]},
- {"name":"K1 Speed - Race 2","type":"Go-Karting","venue":"K1 Speed, Thornton, CO","date":"September 19, 2026","time":"11:44 AM","trip":"XXI","field":12,
+ {"name":"K1 Speed - Race 2","type":"Go-Karting","venue":"K1 Speed, Thornton, CO","date":"September 19, 2026","time":"11:44 AM","trip":"XXI","field":12,"pointsEligible":true,
   "lapsFor":"Nathan Weir","lapsList":["34.905","33.979","39.378","33.498","35.834","32.008","33.914","33.588","32.846","37.842","38.182","36.883"],
   "results":[
    {"place":1,"name":"Ry Heyman","best":"30.517","note":"best lap on lap 11"},
@@ -482,37 +482,60 @@ const COMPETITIONS = [
 (function competitionLeaderboard(){
   const el=document.getElementById('competition-leaderboard'); if(!el)return;
   const aliases={
-    'Nathan Weir':'Nate','Nate':'Nate',
+    'Nathan Weir':'Nate','Nathan':'Nate','Nate':'Nate',
     'Todd Crabb':'Todd','Todd':'Todd',
     'Jonathan Miller':'Johnny','Johnny':'Johnny',
     'Phil Williams':'Phil','Phil':'Phil',
     'Steve Erekson':'Steve','Steve':'Steve',
     'Jess Haddow':'Jess','Jess':'Jess'
   };
-  const totals={};
-  const add=(name,place,event)=>{
-    const player=aliases[name]||name;
-    const points=Math.max(0,7-place);
-    if(!totals[player]) totals[player]={name:player,points:0,events:0,wins:0};
-    totals[player].points+=points;
-    totals[player].events++;
-    if(place===1) totals[player].wins++;
+  const players=['Nate','Todd','Johnny','Phil','Steve','Jess'];
+  const pointsFor=place=>Math.max(0,7-place);
+  const ordinalPlaces=(rows,valueFn)=>{
+    const sorted=[...rows].sort((a,b)=>valueFn(a)-valueFn(b));
+    let last=null,place=0;
+    return sorted.map((r,i)=>{
+      const value=valueFn(r);
+      if(i===0||value!==last) place=i+1;
+      last=value;
+      return {...r,seriesPlace:place};
+    });
   };
+  const events=[];
   COMPETITIONS.filter(c=>c.pointsEligible).forEach(c=>{
+    let standings;
     if(c.clays){
-      c.results.forEach(r=>add(r.name,r.place,c.name));
+      standings=c.results.map(r=>({name:aliases[r.name]||r.name,place:r.place}));
     }else{
-      c.results.filter(r=>r.crew).sort((a,b)=>parseFloat(a.best)-parseFloat(b.best)).forEach((r,i)=>add(r.name,i+1,c.name));
+      standings=ordinalPlaces(c.results.filter(r=>r.crew),r=>parseFloat(r.best))
+        .map(r=>({name:aliases[r.name]||r.name,place:r.seriesPlace}));
     }
+    events.push({name:c.name.replace('K1 Speed - ',''),standings});
   });
+  const pickRows=PREDICTIONS.map(p=>({name:aliases[p.name]||p.name,error:p.byu==null?Infinity:Math.abs(p.byu-41)+Math.abs(p.opp-23)}));
+  const submitted=ordinalPlaces(pickRows.filter(p=>Number.isFinite(p.error)),p=>p.error)
+    .map(p=>({name:p.name,place:p.seriesPlace}));
+  const noPicks=pickRows.filter(p=>!Number.isFinite(p.error)).map(p=>({name:p.name,place:players.length}));
+  events.push({name:'Picks',standings:[...submitted,...noPicks]});
+
+  const totals={};
+  players.forEach(name=>totals[name]={name,points:0,wins:0,eventPoints:{}});
+  events.forEach(event=>event.standings.forEach(r=>{
+    const points=pointsFor(r.place);
+    totals[r.name].points+=points;
+    totals[r.name].eventPoints[event.name]=points;
+    if(r.place===1) totals[r.name].wins++;
+  }));
   const board=Object.values(totals).sort((a,b)=>b.points-a.points||b.wins-a.wins||a.name.localeCompare(b.name));
   let shownPlace=0;
   const rows=board.map((r,i)=>{
     if(i===0||r.points!==board[i-1].points) shownPlace=i+1;
     const tied=(i>0&&r.points===board[i-1].points)||(i<board.length-1&&r.points===board[i+1].points);
-    return '<tr style="background:rgba(240,180,41,.05)"><td><b>'+(tied?'T-':'')+shownPlace+'</b></td><td><span style="color:var(--gold-bright);font-weight:700">'+r.name+'</span></td><td>'+r.events+'</td><td><b>'+r.points+'</b></td></tr>';
+    const perEvent=events.map(e=>'<td>'+(r.eventPoints[e.name]??'—')+'</td>').join('');
+    return '<tr style="background:rgba(240,180,41,.05)"><td><b>'+(tied?'T-':'')+shownPlace+'</b></td><td><span style="color:var(--gold-bright);font-weight:700">'+r.name+'</span></td>'+perEvent+'<td><b>'+r.points+'</b></td></tr>';
   }).join('');
-  el.innerHTML='<div class="game" style="margin-bottom:20px"><div class="top" style="cursor:default"><div class="numeral"><div class="rn">XXI</div><div class="yr">POINTS</div></div><div class="body"><div class="scoreline"><span style="font-size:19px;font-weight:800;letter-spacing:.04em">Weekend Points Leaderboard</span><span class="badge" style="background:var(--panel2)">'+COMPETITIONS.filter(c=>c.pointsEligible).length+' EVENT'+(COMPETITIONS.filter(c=>c.pointsEligible).length===1?'':'S')+'</span></div><div style="overflow-x:auto;margin-top:10px"><table class="sum"><thead><tr><th>Place</th><th>Crew</th><th>Events</th><th>Points</th></tr></thead><tbody>'+rows+'</tbody></table></div><div style="color:var(--muted);font-size:11px;margin-top:8px">Points per crew finish: 1st = 6, 2nd = 5, 3rd = 4, 4th = 3, 5th = 2, 6th = 1. Tied finishes receive the points for the tied place.</div></div></div></div>';
+  const eventHeads=events.map(e=>'<th>'+e.name+'</th>').join('');
+  el.innerHTML='<div class="game" style="margin-bottom:20px"><div class="top" style="cursor:default"><div class="numeral"><div class="rn">XXI</div><div class="yr">POINTS</div></div><div class="body"><div class="scoreline"><span style="font-size:19px;font-weight:800;letter-spacing:.04em">Weekend Points Leaderboard</span><span class="badge" style="background:var(--panel2)">'+events.length+' EVENTS</span></div><div style="overflow-x:auto;margin-top:10px"><table class="sum"><thead><tr><th>Place</th><th>Crew</th>'+eventHeads+'<th>Total</th></tr></thead><tbody>'+rows+'</tbody></table></div><div style="color:var(--muted);font-size:11px;margin-top:8px">Each event is scored by ordinal crew finish: 1st = 6, 2nd = 5, 3rd = 4, 4th = 3, 5th = 2, 6th = 1. Tied finishers each receive the points for the tied place. A no-pick ranks 6th in the picks contest.</div></div></div></div>';
 })();
 
 (function competitions(){
